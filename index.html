@@ -1,223 +1,1198 @@
-import React, { useState, useMemo } from 'react';
-import { useEnergyCalculator, useEnergyMetrics, useCompensationCalculations } from './hooks/useEnergyCalculator';
-import { useLocalStorage } from './hooks/useLocalStorage';
-import DeviceSlider from './components/DeviceSlider';
-import EnergyPlanet from './components/EnergyPlanet';
-import TabContent from './components/TabContent';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Huella Energética - Colombia</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #0ea5e9;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --energy-gradient: linear-gradient(135deg, #0ea5e9 0%, #10b981 100%);
+        }
 
-const DEVICES = [
-  { id: "smartphone", label: "Smartphone", pow: 5, max: 24, default: 8 },
-  { id: "laptop", label: "Laptop", pow: 65, max: 16, default: 6 },
-  { id: "gaming", label: "Gaming", pow: 200, max: 12, default: 3 },
-  { id: "tv", label: "Smart TV", pow: 150, max: 12, default: 4 },
-  { id: "shower", label: "Ducha Eléctrica", pow: 5500, max: 2, default: 0.5 },
-  { id: "lighting", label: "Iluminación (LED)", pow: 60, max: 14, default: 6 },
-];
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-const TABS = [
-  { id: "costos", label: "💰 Costos" },
-  { id: "compensacion", label: "🌱 Compensación" },
-  { id: "comparacion", label: "📊 Comparación" },
-  { id: "global", label: "🌍 Global" },
-];
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
 
-export default function EnergyFootprintApp() {
-  const [tariff] = useState(850);
-  const [renewableShare] = useState(68);
-  const [activeTab, setActiveTab] = useState("costos");
-  const [userName, setUserName] = useState("");
-  const [records, setRecords] = useLocalStorage("energyRecords", {});
-  
-  const initialHours = useMemo(() => 
-    Object.fromEntries(DEVICES.map(d => [d.id, d.default])), 
-  []);
-  
-  const [hours, setHours] = useState(initialHours);
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
 
-  const dailyKwh = useEnergyCalculator(hours, DEVICES);
-  const { monthlyCost, annualCO2 } = useEnergyMetrics(dailyKwh, tariff, renewableShare);
-  const compensationData = useCompensationCalculations(dailyKwh);
+        /* User Profile */
+        .user-profile {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-width: 200px;
+        }
 
-  const handleHourChange = (deviceId, newValue) => {
-    setHours(prev => ({ ...prev, [deviceId]: newValue }));
-  };
+        .avatar-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
 
-  const handleSaveRecord = (stage) => {
-    if (!userName.trim()) return;
-    
-    const newRecords = {
-      ...records,
-      [userName]: {
-        ...records[userName],
-        [stage]: dailyKwh,
-      },
-    };
-    setRecords(newRecords);
-  };
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--energy-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
 
-  const handleExportCSV = () => {
-    const rows = [["Usuario", "Antes (kWh/día)", "Después (kWh/día)"]];
-    Object.entries(records).forEach(([name, data]) => {
-      rows.push([name, data.antes || 0, data.despues || 0]);
-    });
-    
-    const csvContent = rows.map(r => r.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "consumo_energia.csv";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
+        .avatar:hover {
+            transform: scale(1.1);
+        }
 
-  const comparisonData = useMemo(() => 
-    userName && records[userName] 
-      ? [
-          { name: "Antes", kWh: records[userName].antes || 0 },
-          { name: "Después", kWh: records[userName].despues || 0 },
-        ]
-      : [], 
-    [userName, records]
-  );
+        .username {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--primary);
+        }
 
-  const globalComparisonData = useMemo(() => 
-    Object.entries(records).map(([name, data]) => ({
-      name,
-      Antes: data.antes || 0,
-      Después: data.despues || 0,
-    })), 
-    [records]
-  );
+        .user-level {
+            font-size: 0.7rem;
+            color: #6b7280;
+        }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-slate-100 p-6 font-sans">
-      <header className="bg-gradient-to-r from-sky-500 to-emerald-500 text-slate-900 p-6 rounded-2xl text-center mb-6">
-        <h1 className="text-2xl font-bold">Mi Huella Energética — Colombia</h1>
-        <p className="text-sm">Interactúa para ver tu impacto en tiempo real</p>
-      </header>
+        /* Header */
+        .header {
+            background: var(--energy-gradient);
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
 
-      {/* Controles de usuario */}
-      <div className="mb-6 p-4 bg-slate-700 rounded-lg">
-        <div className="flex gap-3 items-center flex-wrap mb-3">
-          <input
-            type="text"
-            placeholder="Nombre del estudiante"
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-            className="px-4 py-2 rounded-md text-slate-900 flex-1 min-w-[200px]"
-            aria-label="Nombre del estudiante"
-          />
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={() => handleSaveRecord("antes")}
-              className="bg-sky-500 px-4 py-2 rounded-md hover:bg-sky-600 transition-colors disabled:opacity-50"
-              disabled={!userName.trim()}
-            >
-              Guardar Antes
-            </button>
-            <button
-              onClick={() => handleSaveRecord("despues")}
-              className="bg-emerald-500 px-4 py-2 rounded-md hover:bg-emerald-600 transition-colors disabled:opacity-50"
-              disabled={!userName.trim()}
-            >
-              Guardar Después
-            </button>
-            <button
-              onClick={handleExportCSV}
-              className="bg-yellow-500 px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors disabled:opacity-50"
-              disabled={Object.keys(records).length === 0}
-            >
-              Exportar CSV
-            </button>
-          </div>
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            background: var(--energy-gradient);
+            color: white;
+            font-size: 1.3rem;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Planet Earth */
+        .planet-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .planet-earth {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 10px auto;
+            background: radial-gradient(circle at 30% 30%, #4a90e2, #2c5aa0);
+            box-shadow: inset -10px -10px 20px rgba(0,0,0,0.3), 0 0 30px rgba(74, 144, 226, 0.5);
+            transition: all 1s ease;
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .planet-earth.healthy {
+            background: radial-gradient(circle at 30% 30%, #4a90e2, #2c5aa0);
+        }
+
+        .planet-earth.warning {
+            background: radial-gradient(circle at 30% 30%, #f39c12, #e67e22);
+        }
+
+        .planet-earth.danger {
+            background: radial-gradient(circle at 30% 30%, #e74c3c, #c0392b);
+        }
+
+        .planet-earth.critical {
+            background: radial-gradient(circle at 30% 30%, #8b0000, #660000);
+        }
+
+        .planet-temperature {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 15px 0 5px 0;
+            transition: color 1s ease;
+        }
+
+        .planet-temperature.healthy { color: #10b981; }
+        .planet-temperature.warning { color: #f59e0b; }
+        .planet-temperature.danger { color: #ef4444; }
+        .planet-temperature.critical { color: #8b0000; }
+
+        .planet-status {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 10px;
+            transition: color 1s ease;
+        }
+
+        .planet-status.healthy { color: #10b981; }
+        .planet-status.warning { color: #f59e0b; }
+        .planet-status.danger { color: #ef4444; }
+        .planet-status.critical { color: #8b0000; }
+
+        /* Results grid */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .result-card {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .result-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .consumption { color: var(--secondary); }
+        .cost { color: var(--warning); }
+        .impact { color: var(--danger); }
+        .solutions { color: var(--success); }
+
+        /* Device controls */
+        .device-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .device-item {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .device-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .device-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            background: var(--secondary);
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .device-info h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .device-info span {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: #e2e8f0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--secondary);
+            cursor: pointer;
+        }
+
+        .hours-display {
+            min-width: 70px;
+            padding: 6px 12px;
+            background: var(--secondary);
+            color: white;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        /* Tabs */
+        .tabs-container {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .tabs-header {
+            display: flex;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6b7280;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            background: var(--secondary);
+            color: white;
+            border-radius: 8px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .avatar-selector {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .avatar-option {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-option.selected {
+            border-color: var(--secondary);
+            transform: scale(1.1);
+        }
+
+        /* Climate impact */
+        .climate-section {
+            background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 100%);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 25px;
+            color: #92400e;
+        }
+
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .impact-item {
+            background: rgba(255,255,255,0.9);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .impact-icon {
+            font-size: 2.2rem;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .impact-value {
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: #dc2626;
+            margin-bottom: 5px;
+        }
+
+        .cost-breakdown {
+            background: #fef3c7;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+        }
+
+        .cost-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .cost-item:last-child {
+            border-bottom: none;
+            font-weight: 700;
+        }
+
+        .solutions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .solution-item {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+        }
+
+        .solution-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: var(--success);
+        }
+
+        .solution-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #0284c7;
+            transform: translateY(-2px);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .user-profile {
+                position: relative;
+                top: auto;
+                left: auto;
+                max-width: 100%;
+                margin-bottom: 20px;
+            }
+            .header h1 { font-size: 2.2rem; }
+            .results-grid { grid-template-columns: 1fr; }
+            .device-grid { grid-template-columns: 1fr; }
+            .avatar-selector { grid-template-columns: repeat(4, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- User Profile -->
+        <div class="user-profile">
+            <div class="avatar-container">
+                <div class="avatar" id="userAvatar" onclick="openModal()">👤</div>
+                <div>
+                    <div class="username" id="username">Usuario</div>
+                    <div class="user-level" id="userLevel">Nuevo</div>
+                </div>
+            </div>
         </div>
-        
-        {/* Resumen rápido */}
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div className="bg-slate-600 p-3 rounded">
-            <p className="text-sm text-slate-300">Consumo Diario</p>
-            <p className="text-lg font-bold">{dailyKwh.toFixed(1)} kWh</p>
-          </div>
-          <div className="bg-slate-600 p-3 rounded">
-            <p className="text-sm text-slate-300">Costo Mensual</p>
-            <p className="text-lg font-bold">${monthlyCost.toLocaleString("es-CO")}</p>
-          </div>
-          <div className="bg-slate-600 p-3 rounded">
-            <p className="text-sm text-slate-300">CO₂ Anual</p>
-            <p className="text-lg font-bold">{annualCO2} kg</p>
-          </div>
-        </div>
-      </div>
 
-      {/* Contenido principal */}
-      <div className="grid lg:grid-cols-4 gap-6">
-        {/* Panel izquierdo - Planeta y pestañas */}
-        <div className="lg:col-span-1 bg-white text-slate-900 rounded-2xl p-6 shadow-lg">
-          <EnergyPlanet dailyKwh={dailyKwh} renewableShare={renewableShare} />
-          
-          <div className="mt-6">
-            <div className="flex border-b mb-4 overflow-x-auto">
-              {TABS.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 min-w-[80px] py-2 transition-colors ${
-                    activeTab === tab.id 
-                      ? "border-b-2 border-sky-500 font-semibold" 
-                      : "text-slate-500 hover:text-slate-700"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+        <!-- Header -->
+        <header class="header">
+            <h1>Mi Huella Energética</h1>
+            <p>Descubre tu impacto energético real en Colombia</p>
+        </header>
+
+        <!-- Results with Planet -->
+        <div class="results-grid">
+            <div class="result-card">
+                <div class="planet-container">
+                    <div class="planet-earth" id="planetEarth"></div>
+                    <div class="planet-temperature" id="planetTemp">+0.0°C</div>
+                    <div class="planet-status" id="planetStatus">Planeta Equilibrado</div>
+                    <div style="font-size: 0.8rem; color: #6b7280; margin-top: 10px;">
+                        <span id="energy-mix">68% renovable • 32% fósil</span>
+                    </div>
+                </div>
             </div>
 
-            <TabContent
-              activeTab={activeTab}
-              monthlyCost={monthlyCost}
-              annualCO2={annualCO2}
-              compensationData={compensationData}
-              comparisonData={comparisonData}
-              globalComparisonData={globalComparisonData}
-            />
-          </div>
+            <div class="result-card">
+                <i class="fas fa-bolt consumption" style="font-size: 2.5rem; margin-bottom: 15px;"></i>
+                <div class="result-value consumption" id="daily-kwh">0.0</div>
+                <div>kWh/día</div>
+            </div>
+
+            <div class="result-card">
+                <i class="fas fa-money-bill-wave cost" style="font-size: 2.5rem; margin-bottom: 15px;"></i>
+                <div class="result-value cost" id="monthly-cost">$0</div>
+                <div>COP/mes</div>
+            </div>
+
+            <div class="result-card">
+                <i class="fas fa-globe-americas impact" style="font-size: 2.5rem; margin-bottom: 15px;"></i>
+                <div class="result-value impact" id="co2-emissions">0</div>
+                <div>kg CO₂/año</div>
+            </div>
         </div>
 
-        {/* Panel derecho - Dispositivos */}
-        <div className="lg:col-span-3 bg-white text-slate-900 rounded-2xl p-6 shadow-lg">
-          <h2 className="text-xl font-semibold mb-6">Configuración de Dispositivos</h2>
-          <div className="space-y-4">
-            {DEVICES.map(device => (
-              <DeviceSlider
-                key={device.id}
-                device={device}
-                value={hours[device.id]}
-                onChange={handleHourChange}
-              />
-            ))}
-          </div>
-          
-          {/* Información adicional */}
-          <div className="mt-8 p-4 bg-slate-100 rounded-lg">
-            <h3 className="font-semibold mb-2">💡 Consejos para ahorrar energía:</h3>
-            <ul className="text-sm text-slate-600 space-y-1">
-              <li>• Usa la ducha eléctrica por menos tiempo</li>
-              <li>• Apaga los dispositivos cuando no los uses</li>
-              <li>• Optimiza el tiempo de uso del gaming</li>
-              <li>• Usa iluminación LED eficiente</li>
-            </ul>
-          </div>
-        </div>
-      </div>
+        <!-- Device Controls -->
+        <section class="card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i class="fas fa-sliders-h"></i>
+                </div>
+                <div>
+                    <div class="card-title">Tu Consumo Diario</div>
+                </div>
+            </div>
+            <div class="device-grid" id="deviceGrid">
+                <!-- Devices will be generated here -->
+            </div>
+        </section>
 
-      {/* Footer */}
-      <footer className="mt-8 text-center text-slate-400 text-sm">
-        <p>© 2024 Mi Huella Energética - Calculadora de consumo energético para Colombia</p>
-      </footer>
+        <!-- Tabs -->
+        <section class="tabs-container">
+            <div class="tabs-header">
+                <button class="tab-button active" data-tab="costs">💰 Costos Colombia</button>
+                <button class="tab-button" data-tab="solutions">🌱 Soluciones Renovables</button>
+                <button class="tab-button" data-tab="comparison">📊 Comparación</button>
+            </div>
+
+            <div class="tab-content active" id="costs">
+                <div class="cost-breakdown" id="costBreakdown">
+                    <!-- Cost data will be populated here -->
+                </div>
+            </div>
+
+            <div class="tab-content" id="solutions">
+                <div class="solutions-grid" id="solutionsGrid">
+                    <!-- Solutions will be populated here -->
+                </div>
+            </div>
+
+            <div class="tab-content" id="comparison">
+                <div id="comparisonContent">
+                    <!-- Comparison data will be populated here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Climate Impact -->
+        <section class="climate-section">
+            <div class="card-header" style="color: #92400e;">
+                <div class="card-icon" style="background: rgba(220, 38, 38, 0.2); color: #dc2626;">
+                    <i class="fas fa-thermometer-three-quarters"></i>
+                </div>
+                <div>
+                    <div class="card-title" style="color: #92400e;">Tu Impacto en Colombia</div>
+                </div>
+            </div>
+            <div class="impact-grid" id="impactGrid">
+                <!-- Impact data will be populated here -->
+            </div>
+        </section>
     </div>
-  );
-}
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <h2>Mi Perfil Energético</h2>
+            <div style="margin: 15px 0;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Nombre:</label>
+                <input type="text" id="usernameInput" placeholder="Tu nombre o alias">
+            </div>
+            
+            <h4>Elige tu Avatar:</h4>
+            <div class="avatar-selector" id="avatarSelector">
+                <!-- Avatars will be generated here -->
+            </div>
+            
+            <h4>Momento del Diagnóstico:</h4>
+            <div style="display: flex; gap: 10px; margin: 15px 0;">
+                <label style="cursor: pointer;">
+                    <input type="radio" name="diagnosisType" value="before" checked> Antes
+                </label>
+                <label style="cursor: pointer;">
+                    <input type="radio" name="diagnosisType" value="after"> Después
+                </label>
+            </div>
+            
+            <div id="progressSection" style="display: none;">
+                <h4>Mi Progreso:</h4>
+                <div id="progressData"></div>
+                <button class="btn" onclick="exportData()">Exportar Datos</button>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn" onclick="saveUser()">Guardar</button>
+                <button class="btn" style="background: #6b7280;" onclick="closeModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        var app = {
+            devices: {
+                smartphone: { name: 'Smartphone', icon: 'fa-mobile-alt', power: 5, unit: '~5W • Carga + uso' },
+                laptop: { name: 'Laptop', icon: 'fa-laptop', power: 65, unit: '~65W • Estudio/trabajo' },
+                gaming: { name: 'Gaming', icon: 'fa-gamepad', power: 200, unit: '~200W • PS5/Xbox/PC' },
+                tv: { name: 'Smart TV', icon: 'fa-tv', power: 150, unit: '~150W • Netflix/YouTube' },
+                shower: { name: 'Ducha Eléctrica', icon: 'fa-shower', power: 5500, unit: '~5500W • Alto consumo' },
+                lighting: { name: 'Iluminación', icon: 'fa-lightbulb', power: 60, unit: '~60W • LEDs casa' }
+            },
+            currentUser: null,
+            tariff: 850,
+            avatars: ['👤', '🧑', '👩', '🧒', '🧑‍🎓', '👩‍🎓', '🧑‍💻', '👩‍💻', '🌱', '⚡', '🔋', '🌞', '🌍', '♻️', '💡', '🔬']
+        };
+
+        // Initialize app
+        function init() {
+            generateDevices();
+            generateAvatars();
+            generateTabs();
+            loadUser();
+            setupEventListeners();
+            calculate();
+        }
+
+        // Generate device controls
+        function generateDevices() {
+            var grid = document.getElementById('deviceGrid');
+            grid.innerHTML = '';
+            
+            Object.keys(app.devices).forEach(function(deviceId) {
+                var device = app.devices[deviceId];
+                var html = 
+                    '<div class="device-item">' +
+                        '<div class="device-header">' +
+                            '<div class="device-icon"><i class="fas ' + device.icon + '"></i></div>' +
+                            '<div class="device-info">' +
+                                '<h4>' + device.name + '</h4>' +
+                                '<span>' + device.unit + '</span>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="slider-group">' +
+                            '<input type="range" class="slider" id="' + deviceId + '" min="0" max="' + (device.power > 1000 ? '2' : '16') + '" value="' + getDefaultValue(deviceId) + '" step="0.1">' +
+                            '<div class="hours-display" id="' + deviceId + '-hours">' + getDefaultValue(deviceId) + 'h</div>' +
+                        '</div>' +
+                    '</div>';
+                grid.innerHTML += html;
+            });
+        }
+
+        function getDefaultValue(deviceId) {
+            var defaults = { smartphone: 8, laptop: 6, gaming: 3, tv: 4, shower: 0.5, lighting: 6 };
+            return defaults[deviceId] || 2;
+        }
+
+        // Generate avatars
+        function generateAvatars() {
+            var selector = document.getElementById('avatarSelector');
+            selector.innerHTML = '';
+            
+            app.avatars.forEach(function(avatar, index) {
+                var option = document.createElement('div');
+                option.className = 'avatar-option';
+                option.style.background = 'linear-gradient(135deg, hsl(' + (index * 22) + ', 70%, 60%), hsl(' + (index * 22 + 40) + ', 70%, 70%))';
+                option.textContent = avatar;
+                option.onclick = function() { selectAvatar(avatar, option); };
+                selector.appendChild(option);
+            });
+        }
+
+        function selectAvatar(avatar, element) {
+            document.querySelectorAll('.avatar-option').forEach(function(el) {
+                el.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            document.getElementById('userAvatar').textContent = avatar;
+        }
+
+        // Generate tab content
+        function generateTabs() {
+            // Cost breakdown
+            var costHtml = 
+                '<div class="cost-item"><span>Consumo diario:</span><span id="daily-cost">$0</span></div>' +
+                '<div class="cost-item"><span>Consumo mensual:</span><span id="monthly-cost-detail">$0</span></div>' +
+                '<div class="cost-item"><span>Consumo anual:</span><span id="annual-cost">$0</span></div>';
+            document.getElementById('costBreakdown').innerHTML = costHtml;
+
+            // Solutions grid
+            var solutionsHtml = 
+                '<div class="solution-item">' +
+                    '<div class="solution-icon">☀️</div>' +
+                    '<div class="solution-value" id="solar-panels">0</div>' +
+                    '<div>Paneles Solares (300W)</div>' +
+                    '<div style="font-size: 0.8rem; color: #6b7280;">Costo: $<span id="solar-cost">0</span>M COP</div>' +
+                '</div>' +
+                '<div class="solution-item">' +
+                    '<div class="solution-icon">💨</div>' +
+                    '<div class="solution-value" id="wind-turbines">0</div>' +
+                    '<div>Aerogeneradores (1kW)</div>' +
+                    '<div style="font-size: 0.8rem; color: #6b7280;">Costo: $<span id="wind-cost">0</span>M COP</div>' +
+                '</div>' +
+                '<div class="solution-item">' +
+                    '<div class="solution-icon">🌿</div>' +
+                    '<div class="solution-value" id="biomass">0</div>' +
+                    '<div>kg Biomasa/día</div>' +
+                    '<div style="font-size: 0.8rem; color: #6b7280;">Equivale a <span id="biomass-equiv">0</span> cáscaras</div>' +
+                '</div>';
+            document.getElementById('solutionsGrid').innerHTML = solutionsHtml;
+
+            // Comparison content
+            var comparisonHtml = 
+                '<div style="background: #f8fafc; padding: 15px; border-radius: 10px; margin-bottom: 15px;">' +
+                    '<strong>Tu consumo:</strong> <span id="your-consumption">0.0 kWh/día</span>' +
+                '</div>' +
+                '<div style="background: #fef3c7; padding: 15px; border-radius: 10px; margin-bottom: 15px;">' +
+                    '<strong>Promedio Colombia:</strong> 3.2 kWh/día' +
+                '</div>' +
+                '<div style="background: #fee2e2; padding: 15px; border-radius: 10px; margin-bottom: 15px;">' +
+                    '<strong>Promedio Mundial:</strong> 12.0 kWh/día' +
+                '</div>' +
+                '<div id="consumption-level" style="padding: 15px; background: #f0f9ff; border-radius: 10px; color: #0369a1;"></div>';
+            document.getElementById('comparisonContent').innerHTML = comparisonHtml;
+
+            // Impact grid
+            var impactHtml = 
+                '<div class="impact-item"><div class="impact-icon">🏔️</div><div class="impact-value" id="glacier">0 cm²</div><div>Glaciar perdido/año</div></div>' +
+                '<div class="impact-item"><div class="impact-icon">🌳</div><div class="impact-value" id="forest">0 m²</div><div>Bosque afectado/año</div></div>' +
+                '<div class="impact-item"><div class="impact-icon">🦋</div><div class="impact-value" id="species">0</div><div>Especies en riesgo</div></div>';
+            document.getElementById('impactGrid').innerHTML = impactHtml;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Device sliders
+            Object.keys(app.devices).forEach(function(deviceId) {
+                var slider = document.getElementById(deviceId);
+                if (slider) {
+                    slider.addEventListener('input', function() {
+                        updateHours(deviceId, this.value);
+                        calculate();
+                    });
+                }
+            });
+
+            // Tab buttons
+            document.querySelectorAll('.tab-button').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    switchTab(this.dataset.tab);
+                });
+            });
+        }
+
+        function updateHours(deviceId, value) {
+            var hoursDisplay = document.getElementById(deviceId + '-hours');
+            if (hoursDisplay) {
+                hoursDisplay.textContent = parseFloat(value).toFixed(1) + 'h';
+            }
+        }
+
+        // Switch tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-button').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(function(content) {
+                content.classList.remove('active');
+            });
+
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Main calculation function
+        function calculate() {
+            var totalWh = 0;
+
+            Object.keys(app.devices).forEach(function(deviceId) {
+                var slider = document.getElementById(deviceId);
+                if (slider) {
+                    var hours = parseFloat(slider.value);
+                    var power = app.devices[deviceId].power;
+                    totalWh += hours * power;
+                }
+            });
+
+            var dailyKwh = totalWh / 1000;
+
+            updateResults(dailyKwh);
+            updatePlanet(dailyKwh);
+            updateCosts(dailyKwh);
+            updateSolutions(dailyKwh);
+            updateComparison(dailyKwh);
+            updateImpact(dailyKwh);
+
+            // Auto-save if user exists
+            if (app.currentUser) {
+                saveUserData(dailyKwh);
+            }
+        }
+
+        function updateResults(dailyKwh) {
+            document.getElementById('daily-kwh').textContent = dailyKwh.toFixed(1);
+            document.getElementById('monthly-cost').textContent = ' + Math.round(dailyKwh * 30 * app.tariff).toLocaleString();
+            document.getElementById('co2-emissions').textContent = Math.round(dailyKwh * 365 * 0.164);
+        }
+
+        function updatePlanet(dailyKwh) {
+            var planet = document.getElementById('planetEarth');
+            var planetTemp = document.getElementById('planetTemp');
+            var planetStatus = document.getElementById('planetStatus');
+            var energyMix = document.getElementById('energy-mix');
+
+            var tempIncrease = Math.max(0, (dailyKwh - 1) * 0.3);
+            tempIncrease = Math.min(tempIncrease, 4.0);
+
+            var state = 'healthy';
+            var statusText = 'Planeta Saludable';
+
+            if (tempIncrease >= 3.0) {
+                state = 'critical';
+                statusText = 'Planeta en Crisis';
+            } else if (tempIncrease >= 2.0) {
+                state = 'danger';
+                statusText = 'Planeta en Peligro';
+            } else if (tempIncrease >= 1.0) {
+                state = 'warning';
+                statusText = 'Planeta Calentándose';
+            }
+
+            planet.className = 'planet-earth ' + state;
+            planetTemp.className = 'planet-temperature ' + state;
+            planetTemp.textContent = '+' + tempIncrease.toFixed(1) + '°C';
+            planetStatus.className = 'planet-status ' + state;
+            planetStatus.textContent = statusText;
+
+            var renewable = Math.max(40, 68 - (dailyKwh > 6 ? (dailyKwh - 6) * 2 : 0));
+            energyMix.textContent = Math.round(renewable) + '% renovable • ' + Math.round(100 - renewable) + '% fósil';
+        }
+
+        function updateCosts(dailyKwh) {
+            document.getElementById('daily-cost').textContent = ' + Math.round(dailyKwh * app.tariff).toLocaleString();
+            document.getElementById('monthly-cost-detail').textContent = ' + Math.round(dailyKwh * 30 * app.tariff).toLocaleString();
+            document.getElementById('annual-cost').textContent = ' + Math.round(dailyKwh * 365 * app.tariff).toLocaleString();
+        }
+
+        function updateSolutions(dailyKwh) {
+            var solarPanels = Math.ceil(dailyKwh / (5 * 0.3));
+            var windTurbines = Math.ceil(dailyKwh / (24 * 0.25 * 1));
+            var biomassKg = (dailyKwh / 4).toFixed(1);
+
+            document.getElementById('solar-panels').textContent = solarPanels;
+            document.getElementById('solar-cost').textContent = (solarPanels * 2.5).toFixed(1);
+            document.getElementById('wind-turbines').textContent = windTurbines;
+            document.getElementById('wind-cost').textContent = (windTurbines * 8).toFixed(1);
+            document.getElementById('biomass').textContent = biomassKg;
+            document.getElementById('biomass-equiv').textContent = Math.round(biomassKg * 5);
+        }
+
+        function updateComparison(dailyKwh) {
+            document.getElementById('your-consumption').textContent = dailyKwh.toFixed(1) + ' kWh/día';
+            
+            var level = '';
+            if (dailyKwh < 2) {
+                level = '🌿 Consumo Muy Bajo: Excelente conciencia energética';
+            } else if (dailyKwh < 3.2) {
+                level = '✅ Consumo Moderado: Cerca del promedio nacional';
+            } else if (dailyKwh < 6) {
+                level = '⚠️ Consumo Alto: Por encima del promedio colombiano';
+            } else if (dailyKwh < 12) {
+                level = '🔴 Consumo Muy Alto: Cerca del promedio mundial';
+            } else {
+                level = '🚨 Consumo Extremo: Necesitas cambios urgentes';
+            }
+            document.getElementById('consumption-level').textContent = level;
+        }
+
+        function updateImpact(dailyKwh) {
+            var annualCO2 = dailyKwh * 365 * 0.164;
+            document.getElementById('glacier').textContent = Math.round(annualCO2 * 15) + ' cm²';
+            document.getElementById('forest').textContent = Math.round(annualCO2 * 8.5) + ' m²';
+            document.getElementById('species').textContent = Math.max(1, Math.round(annualCO2 / 80));
+        }
+
+        // User management
+        function openModal() {
+            document.getElementById('modal').classList.add('active');
+            if (app.currentUser && app.currentUser.diagnoses) {
+                document.getElementById('progressSection').style.display = 'block';
+                updateProgressData();
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        function saveUser() {
+            var username = document.getElementById('usernameInput').value.trim();
+            var selectedAvatar = document.querySelector('.avatar-option.selected');
+            var diagnosisType = document.querySelector('input[name="diagnosisType"]:checked').value;
+
+            if (!username || !selectedAvatar) {
+                alert('Completa todos los campos');
+                return;
+            }
+
+            var avatar = selectedAvatar.textContent;
+            var userId = username.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+            app.currentUser = {
+                id: userId,
+                username: username,
+                avatar: avatar,
+                createdAt: Date.now(),
+                diagnoses: {}
+            };
+
+            // Load existing data if available
+            var existing = localStorage.getItem('climateUser_' + userId);
+            if (existing) {
+                var userData = JSON.parse(existing);
+                app.currentUser.diagnoses = userData.diagnoses || {};
+            }
+
+            // Save current state
+            saveUserData(getCurrentConsumption());
+            
+            localStorage.setItem('currentClimateUser', userId);
+            localStorage.setItem('climateUser_' + userId, JSON.stringify(app.currentUser));
+
+            updateUserDisplay();
+            closeModal();
+
+            // Generate cognitive conflict
+            setTimeout(function() {
+                generateCognitiveConflict(getCurrentConsumption());
+            }, 2000);
+        }
+
+        function getCurrentConsumption() {
+            var totalWh = 0;
+            Object.keys(app.devices).forEach(function(deviceId) {
+                var slider = document.getElementById(deviceId);
+                if (slider) {
+                    totalWh += parseFloat(slider.value) * app.devices[deviceId].power;
+                }
+            });
+            return totalWh / 1000;
+        }
+
+        function saveUserData(dailyKwh) {
+            if (!app.currentUser) return;
+
+            var diagnosisType = document.querySelector('input[name="diagnosisType"]:checked');
+            var type = diagnosisType ? diagnosisType.value : 'before';
+
+            var currentData = {
+                timestamp: Date.now(),
+                type: type,
+                totalKwh: dailyKwh,
+                devices: {},
+                costs: {
+                    daily: dailyKwh * app.tariff,
+                    monthly: dailyKwh * 30 * app.tariff,
+                    annual: dailyKwh * 365 * app.tariff
+                },
+                impact: {
+                    co2: dailyKwh * 365 * 0.164,
+                    tempIncrease: Math.max(0, (dailyKwh - 1) * 0.3)
+                }
+            };
+
+            Object.keys(app.devices).forEach(function(deviceId) {
+                var slider = document.getElementById(deviceId);
+                if (slider) {
+                    currentData.devices[deviceId] = {
+                        hours: parseFloat(slider.value),
+                        kwh: (parseFloat(slider.value) * app.devices[deviceId].power) / 1000
+                    };
+                }
+            });
+
+            app.currentUser.diagnoses[type] = currentData;
+            localStorage.setItem('climateUser_' + app.currentUser.id, JSON.stringify(app.currentUser));
+        }
+
+        function loadUser() {
+            var currentUserId = localStorage.getItem('currentClimateUser');
+            if (currentUserId) {
+                var userData = localStorage.getItem('climateUser_' + currentUserId);
+                if (userData) {
+                    app.currentUser = JSON.parse(userData);
+                    updateUserDisplay();
+                }
+            }
+        }
+
+        function updateUserDisplay() {
+            if (app.currentUser) {
+                document.getElementById('userAvatar').textContent = app.currentUser.avatar;
+                document.getElementById('username').textContent = app.currentUser.username;
+                
+                var hasBefore = app.currentUser.diagnoses.before;
+                var hasAfter = app.currentUser.diagnoses.after;
+                
+                if (hasBefore && hasAfter) {
+                    document.getElementById('userLevel').textContent = 'Completo';
+                } else if (hasBefore) {
+                    document.getElementById('userLevel').textContent = 'Inicial';
+                } else {
+                    document.getElementById('userLevel').textContent = 'Nuevo';
+                }
+            }
+        }
+
+        function updateProgressData() {
+            if (!app.currentUser || !app.currentUser.diagnoses) return;
+
+            var before = app.currentUser.diagnoses.before;
+            var after = app.currentUser.diagnoses.after;
+            var progressDiv = document.getElementById('progressData');
+
+            if (!before) {
+                progressDiv.innerHTML = '<p>Completa tu diagnóstico inicial primero</p>';
+                return;
+            }
+
+            var html = '<h5>Diagnóstico Inicial:</h5>' +
+                       '<p>Consumo: ' + before.totalKwh.toFixed(2) + ' kWh/día</p>' +
+                       '<p>Costo mensual:  + Math.round(before.costs.monthly).toLocaleString() + ' COP</p>';
+
+            if (after) {
+                var change = after.totalKwh - before.totalKwh;
+                var changePercent = ((change / before.totalKwh) * 100);
+                
+                html += '<h5>Diagnóstico Final:</h5>' +
+                        '<p>Consumo: ' + after.totalKwh.toFixed(2) + ' kWh/día</p>' +
+                        '<p>Cambio: ' + (change > 0 ? '+' : '') + changePercent.toFixed(1) + '%</p>' +
+                        '<p style="color: ' + (change < 0 ? 'green' : 'red') + '">' +
+                        (change < 0 ? '✅ Mejoró' : change > 0 ? '⚠️ Empeoró' : '➖ Sin cambios') + '</p>';
+            }
+
+            progressDiv.innerHTML = html;
+        }
+
+        function generateCognitiveConflict(dailyKwh) {
+            var conflicts = [];
+
+            if (dailyKwh > 6) {
+                conflicts.push('🌍 Tu consumo es el doble del promedio colombiano. ¿Cómo afecta esto al planeta?');
+            }
+            
+            if (dailyKwh * 365 * app.tariff > 500000) {
+                conflicts.push('💰 Gastas  + Math.round(dailyKwh * 365 * app.tariff).toLocaleString() + ' al año en electricidad. ¿Qué más podrías hacer con ese dinero?');
+            }
+
+            var shower = document.getElementById('shower');
+            if (shower && shower.value > 1) {
+                conflicts.push('🚿 Tu ducha eléctrica consume más energía que todos los dispositivos de una familia rural. ¿Es necesario?');
+            }
+
+            if (conflicts.length > 0) {
+                var conflict = conflicts[Math.floor(Math.random() * conflicts.length)];
+                showNotification(conflict, 'warning');
+            }
+        }
+
+        function showNotification(message, type) {
+            var notification = document.createElement('div');
+            notification.style.cssText = 
+                'position: fixed; top: 100px; right: 20px; background: ' + 
+                (type === 'warning' ? '#fbbf24' : '#10b981') + 
+                '; color: white; padding: 20px; border-radius: 12px; max-width: 350px; z-index: 1500; ' +
+                'box-shadow: 0 8px 25px rgba(0,0,0,0.2); font-weight: 600; font-size: 0.9rem;';
+            
+            notification.innerHTML = message + 
+                '<button onclick="this.parentNode.remove()" style="position: absolute; top: 5px; right: 10px; background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;">×</button>';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(function() {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 6000);
+        }
+
+        function exportData() {
+            if (!app.currentUser) {
+                alert('No hay datos para exportar');
+                return;
+            }
+
+            var exportData = {
+                usuario: app.currentUser.username,
+                avatar: app.currentUser.avatar,
+                fecha: new Date().toLocaleDateString('es-CO'),
+                diagnosticos: app.currentUser.diagnoses
+            };
+
+            if (app.currentUser.diagnoses.before && app.currentUser.diagnoses.after) {
+                var before = app.currentUser.diagnoses.before;
+                var after = app.currentUser.diagnoses.after;
+                var change = after.totalKwh - before.totalKwh;
+                
+                exportData.progreso = {
+                    cambioTotal: change.toFixed(2) + ' kWh/día',
+                    porcentaje: ((change / before.totalKwh) * 100).toFixed(1) + '%',
+                    ahorro: Math.round(before.costs.annual - after.costs.annual).toLocaleString() + ' COP/año'
+                };
+            }
+
+            var dataStr = JSON.stringify(exportData, null, 2);
+            var dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            var link = document.createElement('a');
+            link.setAttribute('href', dataUri);
+            link.setAttribute('download', 'diagnostico_' + app.currentUser.username + '.json');
+            link.click();
+        }
+
+        // Initialize app when page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
