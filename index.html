@@ -1,0 +1,223 @@
+import React, { useState, useMemo } from 'react';
+import { useEnergyCalculator, useEnergyMetrics, useCompensationCalculations } from './hooks/useEnergyCalculator';
+import { useLocalStorage } from './hooks/useLocalStorage';
+import DeviceSlider from './components/DeviceSlider';
+import EnergyPlanet from './components/EnergyPlanet';
+import TabContent from './components/TabContent';
+
+const DEVICES = [
+  { id: "smartphone", label: "Smartphone", pow: 5, max: 24, default: 8 },
+  { id: "laptop", label: "Laptop", pow: 65, max: 16, default: 6 },
+  { id: "gaming", label: "Gaming", pow: 200, max: 12, default: 3 },
+  { id: "tv", label: "Smart TV", pow: 150, max: 12, default: 4 },
+  { id: "shower", label: "Ducha Eléctrica", pow: 5500, max: 2, default: 0.5 },
+  { id: "lighting", label: "Iluminación (LED)", pow: 60, max: 14, default: 6 },
+];
+
+const TABS = [
+  { id: "costos", label: "💰 Costos" },
+  { id: "compensacion", label: "🌱 Compensación" },
+  { id: "comparacion", label: "📊 Comparación" },
+  { id: "global", label: "🌍 Global" },
+];
+
+export default function EnergyFootprintApp() {
+  const [tariff] = useState(850);
+  const [renewableShare] = useState(68);
+  const [activeTab, setActiveTab] = useState("costos");
+  const [userName, setUserName] = useState("");
+  const [records, setRecords] = useLocalStorage("energyRecords", {});
+  
+  const initialHours = useMemo(() => 
+    Object.fromEntries(DEVICES.map(d => [d.id, d.default])), 
+  []);
+  
+  const [hours, setHours] = useState(initialHours);
+
+  const dailyKwh = useEnergyCalculator(hours, DEVICES);
+  const { monthlyCost, annualCO2 } = useEnergyMetrics(dailyKwh, tariff, renewableShare);
+  const compensationData = useCompensationCalculations(dailyKwh);
+
+  const handleHourChange = (deviceId, newValue) => {
+    setHours(prev => ({ ...prev, [deviceId]: newValue }));
+  };
+
+  const handleSaveRecord = (stage) => {
+    if (!userName.trim()) return;
+    
+    const newRecords = {
+      ...records,
+      [userName]: {
+        ...records[userName],
+        [stage]: dailyKwh,
+      },
+    };
+    setRecords(newRecords);
+  };
+
+  const handleExportCSV = () => {
+    const rows = [["Usuario", "Antes (kWh/día)", "Después (kWh/día)"]];
+    Object.entries(records).forEach(([name, data]) => {
+      rows.push([name, data.antes || 0, data.despues || 0]);
+    });
+    
+    const csvContent = rows.map(r => r.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "consumo_energia.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const comparisonData = useMemo(() => 
+    userName && records[userName] 
+      ? [
+          { name: "Antes", kWh: records[userName].antes || 0 },
+          { name: "Después", kWh: records[userName].despues || 0 },
+        ]
+      : [], 
+    [userName, records]
+  );
+
+  const globalComparisonData = useMemo(() => 
+    Object.entries(records).map(([name, data]) => ({
+      name,
+      Antes: data.antes || 0,
+      Después: data.despues || 0,
+    })), 
+    [records]
+  );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-slate-100 p-6 font-sans">
+      <header className="bg-gradient-to-r from-sky-500 to-emerald-500 text-slate-900 p-6 rounded-2xl text-center mb-6">
+        <h1 className="text-2xl font-bold">Mi Huella Energética — Colombia</h1>
+        <p className="text-sm">Interactúa para ver tu impacto en tiempo real</p>
+      </header>
+
+      {/* Controles de usuario */}
+      <div className="mb-6 p-4 bg-slate-700 rounded-lg">
+        <div className="flex gap-3 items-center flex-wrap mb-3">
+          <input
+            type="text"
+            placeholder="Nombre del estudiante"
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            className="px-4 py-2 rounded-md text-slate-900 flex-1 min-w-[200px]"
+            aria-label="Nombre del estudiante"
+          />
+          <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={() => handleSaveRecord("antes")}
+              className="bg-sky-500 px-4 py-2 rounded-md hover:bg-sky-600 transition-colors disabled:opacity-50"
+              disabled={!userName.trim()}
+            >
+              Guardar Antes
+            </button>
+            <button
+              onClick={() => handleSaveRecord("despues")}
+              className="bg-emerald-500 px-4 py-2 rounded-md hover:bg-emerald-600 transition-colors disabled:opacity-50"
+              disabled={!userName.trim()}
+            >
+              Guardar Después
+            </button>
+            <button
+              onClick={handleExportCSV}
+              className="bg-yellow-500 px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors disabled:opacity-50"
+              disabled={Object.keys(records).length === 0}
+            >
+              Exportar CSV
+            </button>
+          </div>
+        </div>
+        
+        {/* Resumen rápido */}
+        <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="bg-slate-600 p-3 rounded">
+            <p className="text-sm text-slate-300">Consumo Diario</p>
+            <p className="text-lg font-bold">{dailyKwh.toFixed(1)} kWh</p>
+          </div>
+          <div className="bg-slate-600 p-3 rounded">
+            <p className="text-sm text-slate-300">Costo Mensual</p>
+            <p className="text-lg font-bold">${monthlyCost.toLocaleString("es-CO")}</p>
+          </div>
+          <div className="bg-slate-600 p-3 rounded">
+            <p className="text-sm text-slate-300">CO₂ Anual</p>
+            <p className="text-lg font-bold">{annualCO2} kg</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Contenido principal */}
+      <div className="grid lg:grid-cols-4 gap-6">
+        {/* Panel izquierdo - Planeta y pestañas */}
+        <div className="lg:col-span-1 bg-white text-slate-900 rounded-2xl p-6 shadow-lg">
+          <EnergyPlanet dailyKwh={dailyKwh} renewableShare={renewableShare} />
+          
+          <div className="mt-6">
+            <div className="flex border-b mb-4 overflow-x-auto">
+              {TABS.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 min-w-[80px] py-2 transition-colors ${
+                    activeTab === tab.id 
+                      ? "border-b-2 border-sky-500 font-semibold" 
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <TabContent
+              activeTab={activeTab}
+              monthlyCost={monthlyCost}
+              annualCO2={annualCO2}
+              compensationData={compensationData}
+              comparisonData={comparisonData}
+              globalComparisonData={globalComparisonData}
+            />
+          </div>
+        </div>
+
+        {/* Panel derecho - Dispositivos */}
+        <div className="lg:col-span-3 bg-white text-slate-900 rounded-2xl p-6 shadow-lg">
+          <h2 className="text-xl font-semibold mb-6">Configuración de Dispositivos</h2>
+          <div className="space-y-4">
+            {DEVICES.map(device => (
+              <DeviceSlider
+                key={device.id}
+                device={device}
+                value={hours[device.id]}
+                onChange={handleHourChange}
+              />
+            ))}
+          </div>
+          
+          {/* Información adicional */}
+          <div className="mt-8 p-4 bg-slate-100 rounded-lg">
+            <h3 className="font-semibold mb-2">💡 Consejos para ahorrar energía:</h3>
+            <ul className="text-sm text-slate-600 space-y-1">
+              <li>• Usa la ducha eléctrica por menos tiempo</li>
+              <li>• Apaga los dispositivos cuando no los uses</li>
+              <li>• Optimiza el tiempo de uso del gaming</li>
+              <li>• Usa iluminación LED eficiente</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="mt-8 text-center text-slate-400 text-sm">
+        <p>© 2024 Mi Huella Energética - Calculadora de consumo energético para Colombia</p>
+      </footer>
+    </div>
+  );
+}
