@@ -1,655 +1,116 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Huella Energética - Colombia</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Huella Energética</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://kit.fontawesome.com/a2e0e6ad65.js" crossorigin="anonymous"></script>
 </head>
 <body>
-    <div class="container">
-        <!-- User Profile -->
-        <div class="user-profile">
-            <div class="avatar-container">
-                <div class="avatar" id="userAvatar" onclick="openModal()">👤</div>
-                <div>
-                    <div class="username" id="username">Usuario</div>
-                    <div class="user-level" id="userLevel">Nuevo</div>
-                </div>
-            </div>
+  <div class="container">
+    <header class="header">
+      <h1>Mi Huella Energética</h1>
+      <p>Descubre tu impacto energético en Colombia</p>
+    </header>
+
+    <!-- Control de Consumo -->
+    <section class="consumption-control">
+      <label for="consumptionRange">Consumo diario estimado (kWh/día):</label>
+      <input type="range" id="consumptionRange" min="0" max="20" step="0.1" value="2.5" 
+             oninput="updateResults(parseFloat(this.value))">
+      <span id="consumptionValue">2.5 kWh/día</span>
+    </section>
+
+    <!-- Resultados principales -->
+    <div class="results-grid">
+      <div class="result-card planet-card">
+        <div class="planet-container">
+          <div class="planet-earth" id="planetEarth"></div>
+          <div class="planet-temperature" id="planetTemp">+0.0°C</div>
+          <div class="planet-status" id="planetStatus">Planeta Equilibrado</div>
         </div>
-
-        <!-- Header -->
-        <header class="header">
-            <h1>Mi Huella Energética</h1>
-            <p>Descubre tu impacto energético real en Colombia</p>
-        </header>
-
-        <!-- Results with Planet -->
-        <div class="results-grid">
-            <div class="result-card">
-                <div class="planet-container">
-                    <div class="planet-earth" id="planetEarth"></div>
-                    <div class="planet-temperature" id="planetTemp">+0.0°C</div>
-                    <div class="planet-status" id="planetStatus">Planeta Equilibrado</div>
-                    <div style="font-size: 0.8rem; color: #6b7280; margin-top: 10px;">
-                        <span id="energy-mix">68% renovable • 32% fósil</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="result-card">
-                <i class="fas fa-bolt consumption" style="font-size: 2.5rem; margin-bottom: 15px;"></i>
-                <div class="result-value consumption" id="daily-kwh">0.0</div>
-                <div>kWh/día</div>
-            </div>
-
-            <div class="result-card">
-                <i class="fas fa-money-bill-wave cost" style="font-size: 2.5rem; margin-bottom: 15px;"></i>
-                <div class="result-value cost" id="monthly-cost">$0</div>
-                <div>COP/mes</div>
-            </div>
-
-            <div class="result-card">
-                <i class="fas fa-globe-americas impact" style="font-size: 2.5rem; margin-bottom: 15px;"></i>
-                <div class="result-value impact" id="co2-emissions">0</div>
-                <div>kg CO₂/año</div>
-            </div>
-        </div>
-
-        <!-- Device Controls -->
-        <section class="card">
-            <div class="card-header">
-                <div class="card-icon">
-                    <i class="fas fa-sliders-h"></i>
-                </div>
-                <div>
-                    <div class="card-title">Tu Consumo Diario</div>
-                </div>
-            </div>
-            <div class="device-grid" id="deviceGrid">
-                <!-- Devices will be generated here -->
-            </div>
-        </section>
-
-        <!-- Tabs -->
-        <section class="tabs-container">
-            <div class="tabs-header">
-                <button class="tab-button active" data-tab="costs">💰 Costos Colombia</button>
-                <button class="tab-button" data-tab="solutions">🌱 Soluciones Renovables</button>
-                <button class="tab-button" data-tab="comparison">📊 Comparación</button>
-            </div>
-
-            <div class="tab-content active" id="costs">
-                <div class="cost-breakdown" id="costBreakdown">
-                    <!-- Cost data will be populated here -->
-                </div>
-            </div>
-
-            <div class="tab-content" id="solutions">
-                <div class="solutions-grid" id="solutionsGrid">
-                    <!-- Solutions will be populated here -->
-                </div>
-            </div>
-
-            <div class="tab-content" id="comparison">
-                <div id="comparisonContent">
-                    <!-- Comparison data will be populated here -->
-                </div>
-            </div>
-        </section>
-
-        <!-- Climate Impact -->
-        <section class="climate-section">
-            <div class="card-header" style="color: #92400e;">
-                <div class="card-icon" style="background: rgba(220, 38, 38, 0.2); color: #dc2626;">
-                    <i class="fas fa-thermometer-three-quarters"></i>
-                </div>
-                <div>
-                    <div class="card-title" style="color: #92400e;">Tu Impacto en Colombia</div>
-                </div>
-            </div>
-            <div class="impact-grid" id="impactGrid">
-                <!-- Impact data will be populated here -->
-            </div>
-        </section>
+      </div>
+      <div class="result-card">
+        <i class="fas fa-bolt consumption"></i>
+        <div class="result-value consumption" id="daily-kwh">0.0</div>
+        <div>kWh/día</div>
+      </div>
+      <div class="result-card">
+        <i class="fas fa-money-bill-wave cost"></i>
+        <div class="result-value cost" id="monthly-cost">$0</div>
+        <div>COP/mes</div>
+      </div>
+      <div class="result-card">
+        <i class="fas fa-globe-americas impact"></i>
+        <div class="result-value impact" id="co2-emissions">0</div>
+        <div>kg CO₂/año</div>
+      </div>
     </div>
 
-    <!-- Modal -->
-    <div class="modal-overlay" id="modal">
-        <div class="modal">
-            <h2>Mi Perfil Energético</h2>
-            <div style="margin: 15px 0;">
-                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Nombre:</label>
-                <input type="text" id="usernameInput" placeholder="Tu nombre o alias">
-            </div>
-            
-            <h4>Elige tu Avatar:</h4>
-            <div class="avatar-selector" id="avatarSelector">
-                <!-- Avatars will be generated here -->
-            </div>
-            
-            <h4>Momento del Diagnóstico:</h4>
-            <div style="display: flex; gap: 10px; margin: 15px 0;">
-                <label style="cursor: pointer;">
-                    <input type="radio" name="diagnosisType" value="before" checked> Antes
-                </label>
-                <label style="cursor: pointer;">
-                    <input type="radio" name="diagnosisType" value="after"> Después
-                </label>
-            </div>
-            
-            <div id="progressSection" style="display: none;">
-                <h4>Mi Progreso:</h4>
-                <div id="progressData"></div>
-                <button class="btn" onclick="exportData()">Exportar Datos</button>
-            </div>
-            
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button class="btn" onclick="saveUser()">Guardar</button>
-                <button class="btn" style="background: #6b7280;" onclick="closeModal()">Cerrar</button>
-            </div>
+    <!-- Tabs -->
+    <section class="tabs-container">
+      <div class="tabs-header">
+        <button class="tab-button active" onclick="switchTab('costs')">💰 Costos</button>
+        <button class="tab-button" onclick="switchTab('solutions')">🌱 Soluciones Renovables</button>
+        <button class="tab-button" onclick="switchTab('comparison')">📊 Comparación</button>
+      </div>
+
+      <div class="tab-content active" id="costs-tab">
+        <div class="cost-breakdown">
+          <div class="cost-item"><span>Consumo diario:</span><span id="daily-cost">$0 COP</span></div>
+          <div class="cost-item"><span>Consumo mensual:</span><span id="monthly-cost-detailed">$0 COP</span></div>
+          <div class="cost-item"><span>Consumo anual:</span><span id="annual-cost">$0 COP</span></div>
         </div>
-    </div>
-
-    <script src="main.js"></script>
-            grid.innerHTML = '';
-            
-            Object.keys(app.devices).forEach(function(deviceId) {
-                var device = app.devices[deviceId];
-                var html = 
-                    '<div class="device-item">' +
-                        '<div class="device-header">' +
-                            '<div class="device-icon"><i class="fas ' + device.icon + '"></i></div>' +
-                            '<div class="device-info">' +
-                                '<h4>' + device.name + '</h4>' +
-                                '<span>' + device.unit + '</span>' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="slider-group">' +
-                            '<input type="range" class="slider" id="' + deviceId + '" min="0" max="' + (device.power > 1000 ? '2' : '16') + '" value="' + getDefaultValue(deviceId) + '" step="0.1">' +
-                            '<div class="hours-display" id="' + deviceId + '-hours">' + getDefaultValue(deviceId) + 'h</div>' +
-                        '</div>' +
-                    '</div>';
-                grid.innerHTML += html;
-            });
-        }
-
-        function getDefaultValue(deviceId) {
-            var defaults = { smartphone: 8, laptop: 6, gaming: 3, tv: 4, shower: 0.5, lighting: 6 };
-            return defaults[deviceId] || 2;
-        }
-
-        // Generate avatars
-        function generateAvatars() {
-            var selector = document.getElementById('avatarSelector');
-            selector.innerHTML = '';
-            
-            app.avatars.forEach(function(avatar, index) {
-                var option = document.createElement('div');
-                option.className = 'avatar-option';
-                option.style.background = 'linear-gradient(135deg, hsl(' + (index * 22) + ', 70%, 60%), hsl(' + (index * 22 + 40) + ', 70%, 70%))';
-                option.textContent = avatar;
-                option.onclick = function() { selectAvatar(avatar, option); };
-                selector.appendChild(option);
-            });
-        }
-
-        function selectAvatar(avatar, element) {
-            document.querySelectorAll('.avatar-option').forEach(function(el) {
-                el.classList.remove('selected');
-            });
-            element.classList.add('selected');
-            document.getElementById('userAvatar').textContent = avatar;
-        }
-
-        // Generate tab content
-        function generateTabs() {
-            // Cost breakdown
-            var costHtml = 
-                '<div class="cost-item"><span>Consumo diario:</span><span id="daily-cost">$0</span></div>' +
-                '<div class="cost-item"><span>Consumo mensual:</span><span id="monthly-cost-detail">$0</span></div>' +
-                '<div class="cost-item"><span>Consumo anual:</span><span id="annual-cost">$0</span></div>';
-            document.getElementById('costBreakdown').innerHTML = costHtml;
-
-            // Solutions grid
-            var solutionsHtml = 
-                '<div class="solution-item">' +
-                    '<div class="solution-icon">☀️</div>' +
-                    '<div class="solution-value" id="solar-panels">0</div>' +
-                    '<div>Paneles Solares (300W)</div>' +
-                    '<div style="font-size: 0.8rem; color: #6b7280;">Costo: $<span id="solar-cost">0</span>M COP</div>' +
-                '</div>' +
-                '<div class="solution-item">' +
-                    '<div class="solution-icon">💨</div>' +
-                    '<div class="solution-value" id="wind-turbines">0</div>' +
-                    '<div>Aerogeneradores (1kW)</div>' +
-                    '<div style="font-size: 0.8rem; color: #6b7280;">Costo: $<span id="wind-cost">0</span>M COP</div>' +
-                '</div>' +
-                '<div class="solution-item">' +
-                    '<div class="solution-icon">🌿</div>' +
-                    '<div class="solution-value" id="biomass">0</div>' +
-                    '<div>kg Biomasa/día</div>' +
-                    '<div style="font-size: 0.8rem; color: #6b7280;">Equivale a <span id="biomass-equiv">0</span> cáscaras</div>' +
-                '</div>';
-            document.getElementById('solutionsGrid').innerHTML = solutionsHtml;
-
-            // Comparison content
-            var comparisonHtml = 
-                '<div style="background: #f8fafc; padding: 15px; border-radius: 10px; margin-bottom: 15px;">' +
-                    '<strong>Tu consumo:</strong> <span id="your-consumption">0.0 kWh/día</span>' +
-                '</div>' +
-                '<div style="background: #fef3c7; padding: 15px; border-radius: 10px; margin-bottom: 15px;">' +
-                    '<strong>Promedio Colombia:</strong> 3.2 kWh/día' +
-                '</div>' +
-                '<div style="background: #fee2e2; padding: 15px; border-radius: 10px; margin-bottom: 15px;">' +
-                    '<strong>Promedio Mundial:</strong> 12.0 kWh/día' +
-                '</div>' +
-                '<div id="consumption-level" style="padding: 15px; background: #f0f9ff; border-radius: 10px; color: #0369a1;"></div>';
-            document.getElementById('comparisonContent').innerHTML = comparisonHtml;
-
-            // Impact grid
-            var impactHtml = 
-                '<div class="impact-item"><div class="impact-icon">🏔️</div><div class="impact-value" id="glacier">0 cm²</div><div>Glaciar perdido/año</div></div>' +
-                '<div class="impact-item"><div class="impact-icon">🌳</div><div class="impact-value" id="forest">0 m²</div><div>Bosque afectado/año</div></div>' +
-                '<div class="impact-item"><div class="impact-icon">🦋</div><div class="impact-value" id="species">0</div><div>Especies en riesgo</div></div>';
-            document.getElementById('impactGrid').innerHTML = impactHtml;
-        }
-
-        // Setup event listeners
-        function setupEventListeners() {
-            // Device sliders
-            Object.keys(app.devices).forEach(function(deviceId) {
-                var slider = document.getElementById(deviceId);
-                if (slider) {
-                    slider.addEventListener('input', function() {
-                        updateHours(deviceId, this.value);
-                        calculate();
-                    });
-                }
-            });
-
-            // Tab buttons
-            document.querySelectorAll('.tab-button').forEach(function(button) {
-                button.addEventListener('click', function() {
-                    switchTab(this.dataset.tab);
-                });
-            });
-        }
-
-        function updateHours(deviceId, value) {
-            var hoursDisplay = document.getElementById(deviceId + '-hours');
-            if (hoursDisplay) {
-                hoursDisplay.textContent = parseFloat(value).toFixed(1) + 'h';
-            }
-        }
-
-        // Switch tabs
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-button').forEach(function(btn) {
-                btn.classList.remove('active');
-            });
-            document.querySelectorAll('.tab-content').forEach(function(content) {
-                content.classList.remove('active');
-            });
-
-            event.target.classList.add('active');
-            document.getElementById(tabName).classList.add('active');
-        }
-
-        // Main calculation function
-        function calculate() {
-            var totalWh = 0;
-
-            Object.keys(app.devices).forEach(function(deviceId) {
-                var slider = document.getElementById(deviceId);
-                if (slider) {
-                    var hours = parseFloat(slider.value);
-                    var power = app.devices[deviceId].power;
-                    totalWh += hours * power;
-                }
-            });
-
-            var dailyKwh = totalWh / 1000;
-
-            updateResults(dailyKwh);
-            updatePlanet(dailyKwh);
-            updateCosts(dailyKwh);
-            updateSolutions(dailyKwh);
-            updateComparison(dailyKwh);
-            updateImpact(dailyKwh);
-
-            // Auto-save if user exists
-            if (app.currentUser) {
-                saveUserData(dailyKwh);
-            }
-        }
-
-        function updateResults(dailyKwh) {
-            document.getElementById('daily-kwh').textContent = dailyKwh.toFixed(1);
-            document.getElementById('monthly-cost').textContent = ' + Math.round(dailyKwh * 30 * app.tariff).toLocaleString();
-            document.getElementById('co2-emissions').textContent = Math.round(dailyKwh * 365 * 0.164);
-        }
-
-        function updatePlanet(dailyKwh) {
-            var planet = document.getElementById('planetEarth');
-            var planetTemp = document.getElementById('planetTemp');
-            var planetStatus = document.getElementById('planetStatus');
-            var energyMix = document.getElementById('energy-mix');
-
-            var tempIncrease = Math.max(0, (dailyKwh - 1) * 0.3);
-            tempIncrease = Math.min(tempIncrease, 4.0);
-
-            var state = 'healthy';
-            var statusText = 'Planeta Saludable';
-
-            if (tempIncrease >= 3.0) {
-                state = 'critical';
-                statusText = 'Planeta en Crisis';
-            } else if (tempIncrease >= 2.0) {
-                state = 'danger';
-                statusText = 'Planeta en Peligro';
-            } else if (tempIncrease >= 1.0) {
-                state = 'warning';
-                statusText = 'Planeta Calentándose';
-            }
-
-            planet.className = 'planet-earth ' + state;
-            planetTemp.className = 'planet-temperature ' + state;
-            planetTemp.textContent = '+' + tempIncrease.toFixed(1) + '°C';
-            planetStatus.className = 'planet-status ' + state;
-            planetStatus.textContent = statusText;
-
-            var renewable = Math.max(40, 68 - (dailyKwh > 6 ? (dailyKwh - 6) * 2 : 0));
-            energyMix.textContent = Math.round(renewable) + '% renovable • ' + Math.round(100 - renewable) + '% fósil';
-        }
-
-        function updateCosts(dailyKwh) {
-            document.getElementById('daily-cost').textContent = ' + Math.round(dailyKwh * app.tariff).toLocaleString();
-            document.getElementById('monthly-cost-detail').textContent = ' + Math.round(dailyKwh * 30 * app.tariff).toLocaleString();
-            document.getElementById('annual-cost').textContent = ' + Math.round(dailyKwh * 365 * app.tariff).toLocaleString();
-        }
-
-        function updateSolutions(dailyKwh) {
-            var solarPanels = Math.ceil(dailyKwh / (5 * 0.3));
-            var windTurbines = Math.ceil(dailyKwh / (24 * 0.25 * 1));
-            var biomassKg = (dailyKwh / 4).toFixed(1);
-
-            document.getElementById('solar-panels').textContent = solarPanels;
-            document.getElementById('solar-cost').textContent = (solarPanels * 2.5).toFixed(1);
-            document.getElementById('wind-turbines').textContent = windTurbines;
-            document.getElementById('wind-cost').textContent = (windTurbines * 8).toFixed(1);
-            document.getElementById('biomass').textContent = biomassKg;
-            document.getElementById('biomass-equiv').textContent = Math.round(biomassKg * 5);
-        }
-
-        function updateComparison(dailyKwh) {
-            document.getElementById('your-consumption').textContent = dailyKwh.toFixed(1) + ' kWh/día';
-            
-            var level = '';
-            if (dailyKwh < 2) {
-                level = '🌿 Consumo Muy Bajo: Excelente conciencia energética';
-            } else if (dailyKwh < 3.2) {
-                level = '✅ Consumo Moderado: Cerca del promedio nacional';
-            } else if (dailyKwh < 6) {
-                level = '⚠️ Consumo Alto: Por encima del promedio colombiano';
-            } else if (dailyKwh < 12) {
-                level = '🔴 Consumo Muy Alto: Cerca del promedio mundial';
-            } else {
-                level = '🚨 Consumo Extremo: Necesitas cambios urgentes';
-            }
-            document.getElementById('consumption-level').textContent = level;
-        }
-
-        function updateImpact(dailyKwh) {
-            var annualCO2 = dailyKwh * 365 * 0.164;
-            document.getElementById('glacier').textContent = Math.round(annualCO2 * 15) + ' cm²';
-            document.getElementById('forest').textContent = Math.round(annualCO2 * 8.5) + ' m²';
-            document.getElementById('species').textContent = Math.max(1, Math.round(annualCO2 / 80));
-        }
-
-        // User management
-        function openModal() {
-            document.getElementById('modal').classList.add('active');
-            if (app.currentUser && app.currentUser.diagnoses) {
-                document.getElementById('progressSection').style.display = 'block';
-                updateProgressData();
-            }
-        }
-
-        function closeModal() {
-            document.getElementById('modal').classList.remove('active');
-        }
-
-        function saveUser() {
-            var username = document.getElementById('usernameInput').value.trim();
-            var selectedAvatar = document.querySelector('.avatar-option.selected');
-            var diagnosisType = document.querySelector('input[name="diagnosisType"]:checked').value;
-
-            if (!username || !selectedAvatar) {
-                alert('Completa todos los campos');
-                return;
-            }
-
-            var avatar = selectedAvatar.textContent;
-            var userId = username.toLowerCase().replace(/[^a-z0-9]/g, '');
-
-            app.currentUser = {
-                id: userId,
-                username: username,
-                avatar: avatar,
-                createdAt: Date.now(),
-                diagnoses: {}
-            };
-
-            // Load existing data if available
-            var existing = localStorage.getItem('climateUser_' + userId);
-            if (existing) {
-                var userData = JSON.parse(existing);
-                app.currentUser.diagnoses = userData.diagnoses || {};
-            }
-
-            // Save current state
-            saveUserData(getCurrentConsumption());
-            
-            localStorage.setItem('currentClimateUser', userId);
-            localStorage.setItem('climateUser_' + userId, JSON.stringify(app.currentUser));
-
-            updateUserDisplay();
-            closeModal();
-
-            // Generate cognitive conflict
-            setTimeout(function() {
-                generateCognitiveConflict(getCurrentConsumption());
-            }, 2000);
-        }
-
-        function getCurrentConsumption() {
-            var totalWh = 0;
-            Object.keys(app.devices).forEach(function(deviceId) {
-                var slider = document.getElementById(deviceId);
-                if (slider) {
-                    totalWh += parseFloat(slider.value) * app.devices[deviceId].power;
-                }
-            });
-            return totalWh / 1000;
-        }
-
-        function saveUserData(dailyKwh) {
-            if (!app.currentUser) return;
-
-            var diagnosisType = document.querySelector('input[name="diagnosisType"]:checked');
-            var type = diagnosisType ? diagnosisType.value : 'before';
-
-            var currentData = {
-                timestamp: Date.now(),
-                type: type,
-                totalKwh: dailyKwh,
-                devices: {},
-                costs: {
-                    daily: dailyKwh * app.tariff,
-                    monthly: dailyKwh * 30 * app.tariff,
-                    annual: dailyKwh * 365 * app.tariff
-                },
-                impact: {
-                    co2: dailyKwh * 365 * 0.164,
-                    tempIncrease: Math.max(0, (dailyKwh - 1) * 0.3)
-                }
-            };
-
-            Object.keys(app.devices).forEach(function(deviceId) {
-                var slider = document.getElementById(deviceId);
-                if (slider) {
-                    currentData.devices[deviceId] = {
-                        hours: parseFloat(slider.value),
-                        kwh: (parseFloat(slider.value) * app.devices[deviceId].power) / 1000
-                    };
-                }
-            });
-
-            app.currentUser.diagnoses[type] = currentData;
-            localStorage.setItem('climateUser_' + app.currentUser.id, JSON.stringify(app.currentUser));
-        }
-
-        function loadUser() {
-            var currentUserId = localStorage.getItem('currentClimateUser');
-            if (currentUserId) {
-                var userData = localStorage.getItem('climateUser_' + currentUserId);
-                if (userData) {
-                    app.currentUser = JSON.parse(userData);
-                    updateUserDisplay();
-                }
-            }
-        }
-
-        function updateUserDisplay() {
-            if (app.currentUser) {
-                document.getElementById('userAvatar').textContent = app.currentUser.avatar;
-                document.getElementById('username').textContent = app.currentUser.username;
-                
-                var hasBefore = app.currentUser.diagnoses.before;
-                var hasAfter = app.currentUser.diagnoses.after;
-                
-                if (hasBefore && hasAfter) {
-                    document.getElementById('userLevel').textContent = 'Completo';
-                } else if (hasBefore) {
-                    document.getElementById('userLevel').textContent = 'Inicial';
-                } else {
-                    document.getElementById('userLevel').textContent = 'Nuevo';
-                }
-            }
-        }
-
-        function updateProgressData() {
-            if (!app.currentUser || !app.currentUser.diagnoses) return;
-
-            var before = app.currentUser.diagnoses.before;
-            var after = app.currentUser.diagnoses.after;
-            var progressDiv = document.getElementById('progressData');
-
-            if (!before) {
-                progressDiv.innerHTML = '<p>Completa tu diagnóstico inicial primero</p>';
-                return;
-            }
-
-            var html = '<h5>Diagnóstico Inicial:</h5>' +
-                       '<p>Consumo: ' + before.totalKwh.toFixed(2) + ' kWh/día</p>' +
-                       '<p>Costo mensual:  + Math.round(before.costs.monthly).toLocaleString() + ' COP</p>';
-
-            if (after) {
-                var change = after.totalKwh - before.totalKwh;
-                var changePercent = ((change / before.totalKwh) * 100);
-                
-                html += '<h5>Diagnóstico Final:</h5>' +
-                        '<p>Consumo: ' + after.totalKwh.toFixed(2) + ' kWh/día</p>' +
-                        '<p>Cambio: ' + (change > 0 ? '+' : '') + changePercent.toFixed(1) + '%</p>' +
-                        '<p style="color: ' + (change < 0 ? 'green' : 'red') + '">' +
-                        (change < 0 ? '✅ Mejoró' : change > 0 ? '⚠️ Empeoró' : '➖ Sin cambios') + '</p>';
-            }
-
-            progressDiv.innerHTML = html;
-        }
-
-        function generateCognitiveConflict(dailyKwh) {
-            var conflicts = [];
-
-            if (dailyKwh > 6) {
-                conflicts.push('🌍 Tu consumo es el doble del promedio colombiano. ¿Cómo afecta esto al planeta?');
-            }
-            
-            if (dailyKwh * 365 * app.tariff > 500000) {
-                conflicts.push('💰 Gastas  + Math.round(dailyKwh * 365 * app.tariff).toLocaleString() + ' al año en electricidad. ¿Qué más podrías hacer con ese dinero?');
-            }
-
-            var shower = document.getElementById('shower');
-            if (shower && shower.value > 1) {
-                conflicts.push('🚿 Tu ducha eléctrica consume más energía que todos los dispositivos de una familia rural. ¿Es necesario?');
-            }
-
-            if (conflicts.length > 0) {
-                var conflict = conflicts[Math.floor(Math.random() * conflicts.length)];
-                showNotification(conflict, 'warning');
-            }
-        }
-
-        function showNotification(message, type) {
-            var notification = document.createElement('div');
-            notification.style.cssText = 
-                'position: fixed; top: 100px; right: 20px; background: ' + 
-                (type === 'warning' ? '#fbbf24' : '#10b981') + 
-                '; color: white; padding: 20px; border-radius: 12px; max-width: 350px; z-index: 1500; ' +
-                'box-shadow: 0 8px 25px rgba(0,0,0,0.2); font-weight: 600; font-size: 0.9rem;';
-            
-            notification.innerHTML = message + 
-                '<button onclick="this.parentNode.remove()" style="position: absolute; top: 5px; right: 10px; background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;">×</button>';
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(function() {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 6000);
-        }
-
-        function exportData() {
-            if (!app.currentUser) {
-                alert('No hay datos para exportar');
-                return;
-            }
-
-            var exportData = {
-                usuario: app.currentUser.username,
-                avatar: app.currentUser.avatar,
-                fecha: new Date().toLocaleDateString('es-CO'),
-                diagnosticos: app.currentUser.diagnoses
-            };
-
-            if (app.currentUser.diagnoses.before && app.currentUser.diagnoses.after) {
-                var before = app.currentUser.diagnoses.before;
-                var after = app.currentUser.diagnoses.after;
-                var change = after.totalKwh - before.totalKwh;
-                
-                exportData.progreso = {
-                    cambioTotal: change.toFixed(2) + ' kWh/día',
-                    porcentaje: ((change / before.totalKwh) * 100).toFixed(1) + '%',
-                    ahorro: Math.round(before.costs.annual - after.costs.annual).toLocaleString() + ' COP/año'
-                };
-            }
-
-            var dataStr = JSON.stringify(exportData, null, 2);
-            var dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
-            var link = document.createElement('a');
-            link.setAttribute('href', dataUri);
-            link.setAttribute('download', 'diagnostico_' + app.currentUser.username + '.json');
-            link.click();
-        }
-
-        // Initialize app when page loads
-        window.addEventListener('load', init);
-    </script>
+      </div>
+
+      <div class="tab-content" id="solutions-tab">
+        <div class="solutions-grid">
+          <div class="solution-item">
+            <div class="solution-icon">☀️</div>
+            <div class="solution-value" id="solar-panels-needed">0</div>
+            <div>Paneles Solares</div>
+          </div>
+          <div class="solution-item">
+            <div class="solution-icon">💨</div>
+            <div class="solution-value" id="wind-turbines-needed">0</div>
+            <div>Aerogeneradores</div>
+          </div>
+          <div class="solution-item">
+            <div class="solution-icon">🌿</div>
+            <div class="solution-value" id="biomass-needed">0</div>
+            <div>kg Biomasa/día</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="comparison-tab">
+        <p style="text-align:center; color:#666;">Comparación con promedios nacionales y globales en construcción...</p>
+      </div>
+    </section>
+
+    <!-- Impacto en Colombia -->
+    <section class="climate-section">
+      <h2>Tu Impacto en Colombia</h2>
+      <div class="impact-grid">
+        <div class="impact-item">
+          <div class="impact-icon">🏔️</div>
+          <div class="impact-value" id="glacier-loss">0 cm²</div>
+          <div>Glaciar perdido/año</div>
+        </div>
+        <div class="impact-item">
+          <div class="impact-icon">🌳</div>
+          <div class="impact-value" id="forest-impact">0 m²</div>
+          <div>Bosque afectado/año</div>
+        </div>
+        <div class="impact-item">
+          <div class="impact-icon">🦋</div>
+          <div class="impact-value" id="species-risk">0</div>
+          <div>Especies en riesgo</div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script src="main.js"></script>
 </body>
 </html>
