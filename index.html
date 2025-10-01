@@ -14,11 +14,22 @@
       <p>Descubre tu impacto energético en Colombia</p>
     </header>
 
-    <!-- Control de Consumo -->
+    <!-- Control de Consumo por Dispositivos -->
+    <section class="devices-control">
+      <h2>Calcula tu consumo por dispositivos:</h2>
+      <div class="devices-grid" id="devicesContainer">
+        <!-- Los sliders se generarán dinámicamente -->
+      </div>
+      <div class="total-consumption">
+        <strong>Consumo total diario: <span id="totalConsumption">0.0 kWh/día</span></strong>
+      </div>
+    </section>
+
+    <!-- Control de Consumo Manual -->
     <section class="consumption-control">
-      <label for="consumptionRange">Consumo diario estimado (kWh/día):</label>
+      <label for="consumptionRange">O ajusta manualmente el consumo diario (kWh/día):</label>
       <input type="range" id="consumptionRange" min="0" max="20" step="0.1" value="2.5" 
-             oninput="updateResults(parseFloat(this.value))">
+             oninput="updateManualConsumption(parseFloat(this.value))">
       <span id="consumptionValue">2.5 kWh/día</span>
     </section>
 
@@ -54,6 +65,7 @@
         <button class="tab-button active" onclick="switchTab('costs')">💰 Costos</button>
         <button class="tab-button" onclick="switchTab('solutions')">🌱 Soluciones Renovables</button>
         <button class="tab-button" onclick="switchTab('comparison')">📊 Comparación</button>
+        <button class="tab-button" onclick="switchTab('impact')">🇨🇴 Impacto Colombia</button>
       </div>
 
       <div class="tab-content active" id="costs-tab">
@@ -70,43 +82,71 @@
             <div class="solution-icon">☀️</div>
             <div class="solution-value" id="solar-panels-needed">0</div>
             <div>Paneles Solares</div>
+            <div class="solution-desc">(300W c/u)</div>
           </div>
           <div class="solution-item">
             <div class="solution-icon">💨</div>
             <div class="solution-value" id="wind-turbines-needed">0</div>
             <div>Aerogeneradores</div>
+            <div class="solution-desc">(1kW c/u)</div>
           </div>
           <div class="solution-item">
             <div class="solution-icon">🌿</div>
             <div class="solution-value" id="biomass-needed">0</div>
-            <div>kg Biomasa/día</div>
+            <div>kg Biomasa/mes</div>
+            <div class="solution-desc">(4 kWh/kg)</div>
           </div>
         </div>
       </div>
 
       <div class="tab-content" id="comparison-tab">
-        <p style="text-align:center; color:#666;">Comparación con promedios nacionales y globales en construcción...</p>
+        <div class="comparison-content">
+          <div class="comparison-item">
+            <h3>🇨🇴 Promedio Colombiano</h3>
+            <p>Hogar promedio: <strong>4.5 kWh/día</strong></p>
+            <p>Costo mensual: <strong>$1,147,500 COP</strong></p>
+            <p>Emisiones: <strong>269 kg CO₂/año</strong></p>
+          </div>
+          <div class="comparison-item">
+            <h3>🌎 Promedio Global</h3>
+            <p>Hogar promedio: <strong>9.8 kWh/día</strong></p>
+            <p>Emisiones: <strong>586 kg CO₂/año</strong></p>
+          </div>
+          <div class="comparison-item">
+            <h3>📈 Tu Consumo</h3>
+            <p id="comparison-your-consumption">Actual: <strong>2.5 kWh/día</strong></p>
+            <p id="comparison-your-cost">Costo: <strong>$637,500 COP/mes</strong></p>
+            <p id="comparison-your-emissions">CO₂: <strong>149 kg/año</strong></p>
+          </div>
+        </div>
       </div>
-    </section>
 
-    <!-- Impacto en Colombia -->
-    <section class="climate-section">
-      <h2>Tu Impacto en Colombia</h2>
-      <div class="impact-grid">
-        <div class="impact-item">
-          <div class="impact-icon">🏔️</div>
-          <div class="impact-value" id="glacier-loss">0 cm²</div>
-          <div>Glaciar perdido/año</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-icon">🌳</div>
-          <div class="impact-value" id="forest-impact">0 m²</div>
-          <div>Bosque afectado/año</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-icon">🦋</div>
-          <div class="impact-value" id="species-risk">0</div>
-          <div>Especies en riesgo</div>
+      <div class="tab-content" id="impact-tab">
+        <div class="impact-grid-tab">
+          <div class="impact-item-tab">
+            <div class="impact-icon">🏔️</div>
+            <div class="impact-value-tab" id="glacier-loss-tab">0 cm²</div>
+            <div>Glaciar perdido/año</div>
+            <div class="impact-desc">Área de glaciar afectada</div>
+          </div>
+          <div class="impact-item-tab">
+            <div class="impact-icon">🌳</div>
+            <div class="impact-value-tab" id="forest-impact-tab">0 m²</div>
+            <div>Bosque afectado/año</div>
+            <div class="impact-desc">Capacidad de absorción</div>
+          </div>
+          <div class="impact-item-tab">
+            <div class="impact-icon">🦋</div>
+            <div class="impact-value-tab" id="species-risk-tab">0</div>
+            <div>Especies en riesgo</div>
+            <div class="impact-desc">Impacto en biodiversidad</div>
+          </div>
+          <div class="impact-item-tab">
+            <div class="impact-icon">💧</div>
+            <div class="impact-value-tab" id="water-impact-tab">0 L</div>
+            <div>Agua contaminada</div>
+            <div class="impact-desc">Por generación eléctrica</div>
+          </div>
         </div>
       </div>
     </section>

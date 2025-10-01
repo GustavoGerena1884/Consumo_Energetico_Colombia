@@ -17,82 +17,227 @@ body {
   margin-bottom: 20px;
 }
 
-/* Control de consumo */
+/* Control de Dispositivos */
+.devices-control {
+  margin: 20px 0;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.devices-control h2 {
+  margin-top: 0;
+  color: #1e293b;
+  font-size: 1.3rem;
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.devices-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.device-item {
+  padding: 15px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.device-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.device-name {
+  font-weight: bold;
+  color: #1e293b;
+  font-size: 1rem;
+}
+
+.device-power {
+  color: #64748b;
+  font-size: 0.85rem;
+  background: #e2e8f0;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+
+.device-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.device-slider {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: #cbd5e1;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.device-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0ea5e9;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.device-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0ea5e9;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.device-value {
+  min-width: 60px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #0ea5e9;
+  font-weight: bold;
+  background: white;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.total-consumption {
+  text-align: center;
+  padding: 15px;
+  background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+  color: white;
+  border-radius: 10px;
+  margin-top: 20px;
+  font-size: 1.1rem;
+}
+
+.total-consumption span {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+/* Control de consumo manual */
 .consumption-control {
   margin: 20px 0;
   text-align: center;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .consumption-control label {
   font-weight: bold;
   margin-right: 10px;
+  color: #1e293b;
 }
 
 #consumptionRange {
   width: 60%;
-  margin: 10px 0;
+  margin: 15px 0;
+  height: 8px;
+  border-radius: 4px;
+  background: #cbd5e1;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+#consumptionRange::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #0ea5e9;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 #consumptionValue {
   display: block;
-  margin-top: 5px;
-  font-size: 1rem;
+  margin-top: 8px;
+  font-size: 1.1rem;
   color: #0ea5e9;
   font-weight: bold;
 }
 
-/* Resultados compactos */
+/* Resultados compactos - TARJETAS MÁS PEQUEÑAS */
 .results-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 20px;
 }
 
 .result-card {
   background: white;
-  padding: 10px;
-  border-radius: 12px;
+  padding: 8px;
+  border-radius: 10px;
   text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .result-value {
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   font-weight: bold;
+  margin: 3px 0;
 }
 
-/* Planeta */
+/* Planeta MÁS PEQUEÑO */
 .planet-earth {
-  width: 80px;
-  height: 80px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  margin: auto;
+  margin: 0 auto 5px auto;
   background: #3b82f6;
   transition: background 0.3s ease;
 }
 
 .planet-temperature {
-  font-size: 1rem;
-  margin-top: 5px;
+  font-size: 0.8rem;
+  margin-top: 2px;
 }
 
 .planet-status {
-  font-size: 0.8rem;
-  margin-top: 3px;
+  font-size: 0.7rem;
+  margin-top: 2px;
 }
 
 /* Tabs */
 .tabs-header {
   display: flex;
   margin-bottom: 10px;
+  gap: 5px;
 }
 
 .tab-button {
   flex: 1;
-  padding: 10px;
+  padding: 8px 5px;
   border: none;
   cursor: pointer;
   background: #e5e7eb;
+  font-size: 0.8rem;
+  border-radius: 5px 5px 0 0;
 }
 
 .tab-button.active {
@@ -104,11 +249,26 @@ body {
   display: none;
   background: white;
   padding: 15px;
-  border-radius: 8px;
+  border-radius: 0 8px 8px 8px;
 }
 
 .tab-content.active {
   display: block;
+}
+
+/* Cost breakdown */
+.cost-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cost-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  background: #f8fafc;
+  border-radius: 5px;
 }
 
 /* Soluciones */
@@ -126,30 +286,104 @@ body {
 }
 
 .solution-value {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: bold;
   color: #15803d;
+  margin: 5px 0;
 }
 
-/* Impacto en Colombia */
-.climate-section {
-  margin-top: 20px;
+.solution-desc {
+  font-size: 0.7rem;
+  color: #666;
+  margin-top: 3px;
 }
 
-.impact-grid {
+/* Comparación */
+.comparison-content {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 15px;
+}
+
+.comparison-item {
+  background: #f8fafc;
+  padding: 15px;
+  border-radius: 8px;
   text-align: center;
 }
 
-.impact-item {
-  background: #fef2f2;
-  padding: 10px;
-  border-radius: 8px;
+.comparison-item h3 {
+  margin-top: 0;
+  color: #0ea5e9;
+  font-size: 0.9rem;
 }
 
-.impact-value {
-  font-size: 1.2rem;
+.comparison-item p {
+  margin: 8px 0;
+  font-size: 0.8rem;
+}
+
+/* Impacto en Colombia - TAB */
+.impact-grid-tab {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.impact-item-tab {
+  background: #fef2f2;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.impact-value-tab {
+  font-size: 1.3rem;
   font-weight: bold;
+  color: #dc2626;
+  margin: 8px 0;
+}
+
+.impact-desc {
+  font-size: 0.7rem;
+  color: #666;
+  margin-top: 5px;
+}
+
+/* Iconos */
+.fas {
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+}
+
+.consumption { color: #f59e0b; }
+.cost { color: #10b981; }
+.impact { color: #ef4444; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .devices-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .results-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .comparison-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .impact-grid-tab {
+    grid-template-columns: 1fr;
+  }
+  
+  .device-controls {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .device-value {
+    width: 100%;
+  }
 }
